@@ -7,7 +7,7 @@ const { error } = require("console");
 //@route GET /api/contacts
 //@access private
 const getContacts = asyncHandler(async (req, res) => {
-  const contacts = await Contact.find();
+  const contacts = await Contact.find({ user_id: req.user.id });
   res.status(200).json(contacts);
 });
 
@@ -23,7 +23,7 @@ const createContacts = asyncHandler(async (req, res) => {
     throw new Error("all fields are mandatory !!");
   }
   const contact = await Contact.create({
-    name, email, phone,
+    name, email, phone, user_id: req.user.id
   });
   res.status(201).json(contact);
 });
@@ -51,6 +51,10 @@ const updateContact = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("No Contact Found");
   }
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(403);
+    throw new Error("You dont,t Have permissions to update");
+  }
   const updatedContact = await Contact.findByIdAndUpdate(
     req.params.id,
     req.body,
@@ -69,7 +73,12 @@ const deleteContact = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("No Contact Found");
   }
-  await Contact.remove();
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(403);
+    throw new Error("You dont,t Have permissions to delete");
+  }
+
+  await Contact.deleteOne({ _id: req.params.id });
   res.status(200).json(contact);
 });
 

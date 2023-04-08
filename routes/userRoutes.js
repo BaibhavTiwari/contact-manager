@@ -1,14 +1,14 @@
 const express = require("express");
-const { registerUser } = require("../controllers/userController");
+const { registerUser, loginUser, CurrentUser, } = require("../controllers/userController");
+const validateToken = require("../middleware/validateToken");
+
 
 const router = express.Router();
 
 router.post("/register", registerUser);
 
-router.post("/login",);
+router.post("/login", loginUser);
 
-router.get("/current", (req, res) => {
-  res.json({ message: "Current user infomation!" });
-});
+router.get("/current", validateToken, CurrentUser);
 
 module.exports = router;
